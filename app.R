@@ -23,7 +23,7 @@ server <- function(input, output) {
     }
     forceNetwork(Links = A, Nodes = nodes, Source = "source", Target = "target", 
 		Value = "value", NodeID = "name", Nodesize = "size", Group = "group", 
-		opacity = 0.9, zoom = TRUE, legend = TRUE)
+		opacity = 0.9, zoom = FALSE, legend = TRUE)
   }
   output$graph <- renderForceNetwork({
 
