@@ -22,7 +22,8 @@ server <- function(input, output) {
       A$target[i] <- as.numeric(nodes$name[which(nodes$MP_ID == A$target[i])])-1
     }
     forceNetwork(Links = A, Nodes = nodes, Source = "source", Target = "target", 
-		Value = "value", NodeID = "name", Nodesize = "size", Group = "group", 
+		Value = "value", NodeID = "name", Nodesize = "size", Group = "group",  
+    colourScale = JS("d3.scale.category10()"),
 		opacity = 0.9, zoom = FALSE, legend = TRUE)
   }
   output$graph <- renderForceNetwork({
@@ -34,22 +35,21 @@ server <- function(input, output) {
 load("data/factions.Rda")
 f <- unique(as.character(factions$faction_title))
 ui <- shinyUI(fluidPage(
-  titlePanel("Законодавче партнерство"),
-  
   sidebarLayout(
     sidebarPanel(
-           
+      h4("Спільне ініціювання законопроектів"),     
       checkboxGroupInput("factions", 
-                  label = "Фракції, які треба відобразити:",
-                  choices = f,
-                  selected = f),
+                  label = "Оберіть фракції:",
+                  choices = f),
       
       sliderInput("min_value", 
-                  label = "Мінімальна кількість спільних законопроектів:",
-                  min = 1, max = 30, value = 15)
-      ),
+                  label = "Мінімальна кількість законопроектів, спільно ініційованих депутатами:",
+                  min = 1, max = 30, value = 15),
+      helpText("Розмір кружечка залежить від загальної кількості законопроектів, які ініціював депутат.
+               Товшина лінії зв’язку залежить від кількості законопроектів, 
+               які депутати ініціювали разом.")),
     
-    mainPanel(forceNetworkOutput("graph"))
+    mainPanel(forceNetworkOutput("graph", height="600px"))
   )
 ))  
 
