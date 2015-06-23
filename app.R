@@ -170,7 +170,7 @@ ui <- shinyUI(fluidPage(
         mainPanel(forceNetworkOutput("ind_graph", height="600px"))
       )
     )
-  )
+  ), title = "ЧЕСНО::Графи"
 ))  
 
 
