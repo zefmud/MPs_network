@@ -60,19 +60,24 @@ server <- function(input, output, session) {
     }
   }
   
-  observe({
-    if (input$MP2_selectInput != '') 
-    {
-      d1 <- input$chosen_MP
-      d2 <- input$MP2_selectInput
-      t <- get_bills_list(d1, d2)
-       output$bills_table <- DT::renderDataTable(t, options = list(language = list(url = "//cdn.datatables.net/plug-ins/1.10.7/i18n/Ukranian.json")),
+  update_table <- function()
+  {
+    d1 <- input$chosen_MP
+    d2 <- input$MP2_selectInput
+    t <- get_bills_list(d1, d2)
+    output$bills_table <- DT::renderDataTable(t, options = list(language = list(url = "//cdn.datatables.net/plug-ins/1.10.7/i18n/Ukranian.json")),
                                                  caption = paste(d1, " та ", d2, ": cпільні законопроекти", sep = ""), escape = F, rownames = NULL)
-    } else {
-      update_second_droplist()
-    }
-  })
+  }
   
+  observeEvent(input$chosen_MP, 
+  {
+    output$ind_graph <- renderForceNetwork({
+      draw_ind_graph(get_MP_ID(), 1, input$factions_ind)
+    })
+    update_second_droplist()
+  })
+  observeEvent(input$MP2_selectInput, update_table())
+   
   draw_ind_graph <- function(d, level, f = unique(factions$faction_title))
   {
     A <- graph[(graph$source == d)| (graph$target == d),]
@@ -94,7 +99,7 @@ server <- function(input, output, session) {
     A <- A[(A$source %in% nodes$MP_ID)& (A$target %in% nodes$MP_ID), ]
     #regulating the sizes of nodes
     
-    nodes$size[nodes$MP_ID == d] <- 250
+    nodes$size[nodes$MP_ID == d] <- 150
     max_value <- max(A$value)
     #adding the numbers to names
     for (i in 1:length(nodes$name))
@@ -104,7 +109,7 @@ server <- function(input, output, session) {
         nodes$name[i] <- paste(nodes$name[i], ", ",
                                as.character(A$value[(A$target == nodes$MP_ID[i]) | (A$source == nodes$MP_ID[i])]),
                                sep = ""  )
-        nodes$size[i] <- 4 +  (A$value[(A$target == nodes$MP_ID[i]) | (A$source == nodes$MP_ID[i])] / max_value) * 150
+        nodes$size[i] <- 1 +  (A$value[(A$target == nodes$MP_ID[i]) | (A$source == nodes$MP_ID[i])] / max_value) * 90
       }
       
     }
@@ -135,9 +140,7 @@ server <- function(input, output, session) {
     draw_graph(graph, input$min_value, input$factions)
   })
   
-  output$ind_graph <- renderForceNetwork({
-    draw_ind_graph(get_MP_ID(), 1, input$factions_ind)
-  })
+
 #   observeEvent (input$select_all, {
 #     updateCheckboxGroupInput(session, "select_all", label = ifelse(input$select_all$value %% 2 == 1,"Прибрати всі","Обрати всі"), 
 #                              choices = f, selected = ifelse(input$select_all$value %% 2 == 1,"Прибрати всі","Обрати всі"), inline = FALSE)
@@ -173,12 +176,11 @@ ui <- shinyUI(fluidPage(
         mainPanel(forceNetworkOutput("graph", height="500px"))
       )
     ),
-    tabPanel("Конкретний депутат",
+    tabPanel("Окремий депутат",
       sidebarLayout(
         sidebarPanel(width = 3, 
-          h4("Партнери окремого депутата"),
-          helpText("Побачите усіх, з ким депутат подав хоча б один спільний законопроект. Чим більша відстань і менший кружечок депутатів - тим менш 		законопроектів він спільно ініціював з обраним нардепом. Наведіть мишкою на кружечок, і після імені депутата 
-                   побачите точну кількість спільних законопроектів"),
+          h4("Усі партнери депутата"),
+          helpText("Чим більша відстань і менший кружечок депутатів - тим менше законопроектів він спільно ініціював з обраним нардепом. Наведіть 		мишкою на кружечок, і після імені депутата побачите точну кількість спільних законопроектів"),
           selectInput("chosen_MP", "Оберіть депутата:", 
                       choices = all_nodes$name[order(all_nodes$name)]),
           checkboxGroupInput("factions_ind", 
@@ -191,7 +193,6 @@ ui <- shinyUI(fluidPage(
 #           ),
 	  selectInput(inputId = "MP2_selectInput", label = "Вивести список законопроектів", choices = NULL),
           helpText("Ви також можете подивитися список усіх законопроектів, які двоє депутатів ініціювали разом. Для цього потрібно обрати другого 		депутата зі списку партнерів першого")
-          #sliderInput("level", "Оберіть глибину пошуку:", min = 1, max = 5, value = 1)
         ),
         mainPanel(
 	  forceNetworkOutput("ind_graph", height="500px"),
