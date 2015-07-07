@@ -2,13 +2,13 @@
 
 {
 	"sProcessing":   "Зачекайте...",
-	"sLengthMenu":   "Показати _MENU_ проектів законів",
-	"sZeroRecords":  "Проекти законів відсутні.",
-	"sInfo":         "Законопроекти з _START_ по _END_ із _TOTAL_ проектів законів",
-	"sInfoEmpty":    "Проекти законів з 0 по 0 із 0 записів",
+	"sLengthMenu":   "Показати _MENU_ записів",
+	"sZeroRecords":  "Записи відсутні.",
+	"sInfo":         "Записи з _START_ по _END_ із _TOTAL_ записів",
+	"sInfoEmpty":    "Записи з 0 по 0 із 0 записів",
 	"sInfoFiltered": "(відфільтровано з _MAX_ записів)",
 	"sInfoPostFix":  "",
-	"sSearch":       "Пошук по законопроектам:",
+	"sSearch":       "Пошук:",
 	"sUrl":          "",
 	"oPaginate": {
 		"sFirst": "Перша",
