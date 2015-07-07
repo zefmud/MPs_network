@@ -75,7 +75,10 @@ server <- function(input, output, session) {
       draw_ind_graph(get_MP_ID(), 1, input$factions_ind)
     })
     d <- input$chosen_MP
-    updateSelectInput(session, inputId = "MP1_selectInput", choices = partners$name, selected = d)
+    if (d %in% partners$name) 
+    {
+      updateSelectInput(session, inputId = "MP1_selectInput", choices = partners$name, selected = d)
+    }
   })
   observeEvent(input$MP1_selectInput, {
     update_second_droplist()
