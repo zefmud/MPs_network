@@ -65,7 +65,7 @@ server <- function(input, output, session) {
     d1 <- input$MP1_selectInput
     d2 <- input$MP2_selectInput
     t <- get_bills_list(d1, d2)
-    output$bills_table <- DT::renderDataTable(t, options = list(language = list(url = "assets/assets/Ukranian.json")),
+    output$bills_table <- DT::renderDataTable(t, options = list(language = list(url = "assets/Ukranian.json")),
                                                  caption = paste(d1, " та ", d2, ": cпільні законопроекти", sep = ""), escape = F, rownames = NULL)
   }
   
