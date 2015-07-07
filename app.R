@@ -82,7 +82,7 @@ server <- function(input, output, session) {
     d1 <- input$MP1_selectInput
     number_all <- all_nodes$size[all_nodes$name == d1]
     output$table_header1 <- renderUI({h5(paste(d1, " всього подав(-ла) ", number_all, " законопроект(-и,-ів)."), sep="")})
-    output$help_second_list <-renderUI({helpText(paste("Депутати в другому списку відсортовані за кількістю законопроектів, яку ", d1, " подав у співпраці із ними.", sep = "")) })
+    output$help_second_list <-renderUI({helpText(paste("Депутати в другому списку відсортовані за кількістю законопроектів, яку ", d1, " подав(-ла) у співпраці із ними.", sep = "")) })
   })
   observeEvent(input$MP2_selectInput, {
     update_table()
