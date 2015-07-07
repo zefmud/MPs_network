@@ -161,11 +161,22 @@ server <- function(input, output, session) {
     draw_graph(graph, input$min_value, input$factions)
   })
   
-
-#   observeEvent (input$select_all, {
-#     updateCheckboxGroupInput(session, "select_all", label = ifelse(input$select_all$value %% 2 == 1,"Прибрати всі","Обрати всі"), 
-#                              choices = f, selected = ifelse(input$select_all$value %% 2 == 1,"Прибрати всі","Обрати всі"), inline = FALSE)
-#   })
+  observeEvent (input$select_all, {
+     updateCheckboxGroupInput(session, "factions", selected = f)
+  })
+  
+  observeEvent (input$deselect_all, {
+     updateCheckboxGroupInput(session, "factions", selected = "")
+  })
+  
+  observeEvent (input$select_all_ind, {
+     updateCheckboxGroupInput(session, "factions_ind", selected = f)
+  })
+  
+  observeEvent (input$deselect_all_ind, {
+     updateCheckboxGroupInput(session, "factions_ind", selected = "")
+  })
+   
 }
 #ui function
 
@@ -180,16 +191,14 @@ ui <- shinyUI(fluidPage(
           checkboxGroupInput("factions", 
                       label = "Оберіть фракції:",
                       choices = f),
-          
+          fluidRow(
+	    actionButton("select_all", "Обрати всі"),
+            actionButton("deselect_all", "Скинути всі")
+          ),
           sliderInput("min_value", 
                       label = "Мінімальна кількість законопроектів, спільно ініційованих депутатами:",
                       min = 1, max = 30, value = 15),
-#           fluidRow(
-#             column(10, 
-#                    actionButton("select_all_ind", "Обрати всі")
-#             )
-#           ),
-            
+          
           helpText("Розмір кружечка залежить від загальної кількості законопроектів, які ініціював депутат.
                    Товшина лінії зв’язку залежить від кількості законопроектів, 
                    які депутати ініціювали разом.")),
@@ -206,7 +215,11 @@ ui <- shinyUI(fluidPage(
                       choices = all_nodes$name[order(all_nodes$name)]),
           checkboxGroupInput("factions_ind", 
                              label = "Оберіть фракції партнерів:",
-                             choices = f, selected = f)
+                             choices = f, selected = f),
+          fluidRow(
+	    actionButton("select_all_ind", "Обрати всі"),
+            actionButton("deselect_all_ind", "Скинути всі")
+          )
 #           fixedRow(
 #             column(10, 
 #                    actionButton("select_all_ind", "Прибрати всі")
