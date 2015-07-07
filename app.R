@@ -192,8 +192,8 @@ ui <- shinyUI(fluidPage(
                       label = "Оберіть фракції:",
                       choices = f),
           fluidRow(
-	    actionButton("select_all", "Обрати всі"),
-            actionButton("deselect_all", "Скинути всі")
+	    column(width=4, actionButton("select_all", "Обрати всі")),
+            column(width=4, actionButton("deselect_all", "Скинути всі"))
           ),
           sliderInput("min_value", 
                       label = "Мінімальна кількість законопроектів, спільно ініційованих депутатами:",
@@ -217,8 +217,8 @@ ui <- shinyUI(fluidPage(
                              label = "Оберіть фракції партнерів:",
                              choices = f, selected = f),
           fluidRow(
-	    actionButton("select_all_ind", "Обрати всі"),
-            actionButton("deselect_all_ind", "Скинути всі")
+	    column(width=4, actionButton("select_all_ind", "Обрати всі")) ,
+            column(width=4, actionButton("deselect_all_ind", "Скинути всі"))
           )
           
         ),
