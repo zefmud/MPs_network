@@ -34,9 +34,9 @@ server <- function(input, output, session) {
   
     
   update_second_droplist <-  function() {
-    selected <- which(partners$name == input$chosen_MP)
+    selected <- which(partners$name == input$MP1_selectInput)
     partners_names <- as.character(partners$partners[[selected]]$name)
-    updateSelectInput(session, inputId = "MP2_selectInput", choices = partners_names[order(partners_names)], selected = partners_names[1])
+    updateSelectInput(session, inputId = "MP2_selectInput", choices = partners_names, selected = partners_names[1])
   }
   
   get_bills_list <- function(d1, d2)
@@ -62,7 +62,7 @@ server <- function(input, output, session) {
   
   update_table <- function()
   {
-    d1 <- input$chosen_MP
+    d1 <- input$MP1_selectInput
     d2 <- input$MP2_selectInput
     t <- get_bills_list(d1, d2)
     output$bills_table <- DT::renderDataTable(t, options = list(language = list(url = "//cdn.datatables.net/plug-ins/1.10.7/i18n/Ukranian.json")),
@@ -74,9 +74,30 @@ server <- function(input, output, session) {
     output$ind_graph <- renderForceNetwork({
       draw_ind_graph(get_MP_ID(), 1, input$factions_ind)
     })
-    update_second_droplist()
+    d <- input$chosen_MP
+    updateSelectInput(session, inputId = "MP1_selectInput", choices = partners$name, selected = d)
   })
-  observeEvent(input$MP2_selectInput, update_table())
+  observeEvent(input$MP1_selectInput, {
+    update_second_droplist()
+    d1 <- input$MP1_selectInput
+    number_all <- all_nodes$size[all_nodes$name == d1]
+    output$table_header1 <- renderUI({h5(paste(d1, " всього подав(-ла) ", number_all, " законопроект(-и,-ів)."), sep="")})
+    output$help_second_list <-renderUI({helpText(paste("Депутати в другому списку відсортовані за кількістю законопроектів, яку ", d1, " подав у співпраці із ними.", sep = "")) })
+  })
+  observeEvent(input$MP2_selectInput, {
+    update_table()
+    d1 <- input$MP1_selectInput
+    d2_string <- input$MP2_selectInput
+    d1 <- all_nodes$MP_ID[all_nodes$name == d1]
+    d2 <- all_nodes$MP_ID[all_nodes$name == d2_string]
+    if (sum(((graph$source == d1)|(graph$source == d2))&((graph$target == d1)|(graph$target == d2))) > 0)
+    {
+      link_number <- which(((graph$source == d1)|(graph$source == d2))&((graph$target == d1)|(graph$target == d2)))
+      number_coop <- graph$value[link_number] 
+      output$table_header2 <- renderUI({h5(paste("Разом з ",d2_string, " - ", number_coop, " законопроект(-и,-ів)."), sep="")})
+    }
+   }
+  )
    
   draw_ind_graph <- function(d, level, f = unique(factions$faction_title))
   {
@@ -109,7 +130,7 @@ server <- function(input, output, session) {
         nodes$name[i] <- paste(nodes$name[i], ", ",
                                as.character(A$value[(A$target == nodes$MP_ID[i]) | (A$source == nodes$MP_ID[i])]),
                                sep = ""  )
-        nodes$size[i] <- 1 +  (A$value[(A$target == nodes$MP_ID[i]) | (A$source == nodes$MP_ID[i])] / max_value) * 90
+        nodes$size[i] <- 4 +  (A$value[(A$target == nodes$MP_ID[i]) | (A$source == nodes$MP_ID[i])] / max_value) * 90
       }
       
     }
@@ -151,10 +172,10 @@ server <- function(input, output, session) {
 
 ui <- shinyUI(fluidPage(
   tabsetPanel(
-    tabPanel("Усі депутати",
+    tabPanel("Фракція-Фракція",
       sidebarLayout(
         sidebarPanel(width = 3, 
-          h3("Депутатські групи"), 
+          h4("Законототворчі групи"), 
           helpText("Хто найтісніше співпрацює всередині кожної фракції та між ними?"),
           checkboxGroupInput("factions", 
                       label = "Оберіть фракції:",
@@ -176,26 +197,44 @@ ui <- shinyUI(fluidPage(
         mainPanel(forceNetworkOutput("graph", height="500px"))
       )
     ),
-    tabPanel("Окремий депутат",
+    tabPanel("Депутат-Фракція",
       sidebarLayout(
         sidebarPanel(width = 3, 
-          h4("Усі партнери депутата"),
+          h4("Співпраця депутата з депутатами різних фракцій"),
           helpText("Чим більша відстань і менший кружечок депутатів - тим менше законопроектів він спільно ініціював з обраним нардепом. Наведіть 		мишкою на кружечок, і після імені депутата побачите точну кількість спільних законопроектів"),
           selectInput("chosen_MP", "Оберіть депутата:", 
                       choices = all_nodes$name[order(all_nodes$name)]),
           checkboxGroupInput("factions_ind", 
                              label = "Оберіть фракції партнерів:",
-                             choices = f, selected = f),
+                             choices = f, selected = f)
 #           fixedRow(
 #             column(10, 
 #                    actionButton("select_all_ind", "Прибрати всі")
 #             )
 #           ),
-	  selectInput(inputId = "MP2_selectInput", label = "Вивести список законопроектів", choices = NULL),
-          helpText("Ви також можете подивитися список усіх законопроектів, які двоє депутатів ініціювали разом. Для цього потрібно обрати другого 		депутата зі списку партнерів першого")
+	  
+          
         ),
         mainPanel(
-	  forceNetworkOutput("ind_graph", height="500px"),
+	        forceNetworkOutput("ind_graph", height="500px")
+	  
+	      )
+      )
+    ),
+    tabPanel("Депутат-Депутат",
+      sidebarLayout(
+	sidebarPanel(width = 3,
+	  h4("Спільні законопроекти депутатів"),
+	  helpText("Оберіть першого депутата, а потім - другого з числа його партнерів, аби побачити список спільно ініційованих двома депутатами 		законопроектів"),
+	  selectInput(inputId = "MP1_selectInput", label = "Виберіть першого депутата", choices = partners$name),
+	  selectInput(inputId = "MP2_selectInput", label = "Виберіть другого депутата", choices = NULL),
+	  uiOutput("help_second_list")
+	  
+	),
+	mainPanel(
+	  uiOutput("table_header1"),
+	  uiOutput("table_header2"),
+	  br(),
 	  DT::dataTableOutput('bills_table')
 	)
       )
