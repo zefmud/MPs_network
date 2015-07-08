@@ -137,7 +137,7 @@ server <- function(input, output, session) {
     dep_name <- all_nodes$name[all_nodes$MP_ID == d]
     partners_amount <- length(p[, 1])
     draftlaws <- all_nodes$size[all_nodes$name == dep_name]
-    output$ind_table <- DT::renderDataTable(p, options = list(language = list(url = "assets/Ukranian_partners.json")),
+    output$ind_table <- DT::renderDataTable(p, options = list(pageLength = 50,language = list(url = "assets/Ukranian_partners.json")),
                         caption = paste(dep_name, " всього подав ", draftlaws, " законопроектів та має ", partners_amount, " законодавчих партнерів з обраних фракцій.", sep = ""), escape = F, rownames = NULL)
   }
   
