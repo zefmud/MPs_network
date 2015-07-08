@@ -14,7 +14,6 @@ server <- function(input, output, session) {
   table <- FALSE
   draw_graph <- function(graph, min_value, f = unique(factions$faction_title))
   {
-    outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = FALSE)
     A <- graph[graph$value >= min_value, ]
     active_nodes <- unique(c(A$source, A$target))
     nodes <- all_nodes[(all_nodes$MP_ID %in% active_nodes) & (all_nodes$group %in% f), ]
@@ -255,6 +254,7 @@ server <- function(input, output, session) {
     table <<- TRUE
     draw_ind_table(get_MP_ID(), input$factions_ind)  
     outputOptions(x = output, name = 'ind_table', suspendWhenHidden = FALSE)
+    outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = TRUE)
     show(id = "graph_button")
     show(id = "ind_table")
     hide(id = "table_button")
@@ -263,9 +263,9 @@ server <- function(input, output, session) {
   
   observeEvent(input$graph_button, {
     table <<- FALSE
+    outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = FALSE)
     hide(id = "ind_table")
     show(id = "ind_graph")
-    outputOptions(x = output, name = 'ind_table', suspendWhenHidden = FALSE)
     output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     hide(id = "graph_button")
     show(id = "table_button")
