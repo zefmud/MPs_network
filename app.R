@@ -9,7 +9,7 @@ f <- unique(as.character(factions$faction_title))
 
 #server function
 server <- function(input, output, session) {
-
+  table <- FALSE
   draw_graph <- function(graph, min_value, f = unique(factions$faction_title))
   {
     A <- graph[graph$value >= min_value, ]
@@ -77,7 +77,7 @@ server <- function(input, output, session) {
     d <- input$chosen_MP
     if (d %in% partners$name) 
     {
-      updateSelectInput(session, inputId = "MP1_selectInput", choices = partners$name, selected = d)
+      updateSelectInput(session, inputId = "MP1_selectInput", choices = partners$name[order(partners$name)], selected = d)
     }
   })
   observeEvent(input$MP1_selectInput, {
@@ -180,6 +180,11 @@ server <- function(input, output, session) {
   observeEvent (input$deselect_all_ind, {
      updateCheckboxGroupInput(session, "factions_ind", selected = "")
   })
+  
+  observeEvent(input$table_button, {
+    table <- !table
+    update	
+  })
    
 }
 #ui function
@@ -223,7 +228,8 @@ ui <- shinyUI(fluidPage(
           fluidRow(
 	    column(width=4, actionButton("select_all_ind", "Обрати всі")) ,
             column(width=4, actionButton("deselect_all_ind", "Скинути всі"))
-          )
+          ),
+          actionButton("table_button", "У вигляді таблиці")
           
         ),
         mainPanel(
