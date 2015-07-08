@@ -73,12 +73,15 @@ server <- function(input, output, session) {
   
   update_ind_plots <- function()
   {
+     draw_ind_table(get_MP_ID(), input$factions_ind) 
+     outputOptions(x = output, name = 'ind_table', suspendWhenHidden = FALSE)
+#     output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     if (table == TRUE)
     {
-      draw_ind_table(get_MP_ID(), input$factions_ind) 
-      
+     draw_ind_table(get_MP_ID(), input$factions_ind) 
+     
     } else {
-      output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
+     output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     }
   }
   
@@ -251,28 +254,24 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$table_button,  {
-    table <<- TRUE
-    draw_ind_table(get_MP_ID(), input$factions_ind)  
-    outputOptions(x = output, name = 'ind_table', suspendWhenHidden = FALSE)
-    outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = TRUE)
-    show(id = "graph_button")
-    show(id = "ind_table")
-    hide(id = "table_button")
-    hide(id = "ind_graph")
+    if (table == FALSE)
+    {
+      #outputOptions(x = output, name = 'ind_table', suspendWhenHidden = FALSE)
+      #outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = TRUE)
+      #draw_ind_table(get_MP_ID(), input$factions_ind) 
+      text("table_button", "Назад до графу")
+    } else {
+      text("table_button", "У вигляді таблиці")
+      outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = FALSE)
+    }
+    table <<- !table
+    toggle("ind_table")
+    toggle("ind_graph")
+    update_ind_plots()
+
   })
   
-  observeEvent(input$graph_button, {
-    table <<- FALSE
-    hide(id = "ind_table")
-    show(id = "ind_graph")
-    hide(id = "graph_button")
-    show(id = "table_button")
-    outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = FALSE)
-    output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
-  })
-  hide(id = "graph_button")
-
-
+  hide(id = 'ind_table')
   
 }
 #ui function
@@ -318,7 +317,6 @@ ui <- shinyUI(fluidPage(
 	          column(width=4, actionButton("select_all_ind", "Обрати всі")) ,
             column(width=4, actionButton("deselect_all_ind", "Скинути всі"))
           ),
-          fluidRow(column(width = 5, offset = 1, actionButton("graph_button", "Назад до графу"))),
           fluidRow(column(width = 5, offset = 1, actionButton("table_button", "У вигляді таблиці")))
           
  
