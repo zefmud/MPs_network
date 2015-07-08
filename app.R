@@ -14,6 +14,7 @@ server <- function(input, output, session) {
   table <- FALSE
   draw_graph <- function(graph, min_value, f = unique(factions$faction_title))
   {
+    outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = FALSE)
     A <- graph[graph$value >= min_value, ]
     active_nodes <- unique(c(A$source, A$target))
     nodes <- all_nodes[(all_nodes$MP_ID %in% active_nodes) & (all_nodes$group %in% f), ]
@@ -76,9 +77,11 @@ server <- function(input, output, session) {
     if (table == TRUE)
     {
       draw_ind_table(get_MP_ID(), input$factions_ind) 
+      
     } else {
       output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     }
+    print(outputOptions(output, name = NULL))
   }
   
   observeEvent(input$chosen_MP, 
@@ -137,7 +140,7 @@ server <- function(input, output, session) {
     dep_name <- all_nodes$name[all_nodes$MP_ID == d]
     partners_amount <- length(p[, 1])
     draftlaws <- all_nodes$size[all_nodes$name == dep_name]
-    output$ind_table <- DT::renderDataTable(p, options = list(pageLength = 50,language = list(url = "assets/Ukranian_partners.json")),
+    output$ind_table <- DT::renderDataTable(p, options = list(pageLength = 50, language = list(url = "assets/Ukranian_partners.json")),
                         caption = paste(dep_name, " всього подав ", draftlaws, " законопроектів та має ", partners_amount, " законодавчих партнерів з обраних фракцій.", sep = ""), escape = F, rownames = NULL)
   }
   
@@ -198,7 +201,7 @@ server <- function(input, output, session) {
   {
     if (table == FALSE)
     {
-      renderForceNetwork({draw_ind_graph(d, 1, f)})
+      renderForceNetwork(draw_ind_graph(d, 1, f))
     } else {
       NULL
     }
@@ -252,6 +255,7 @@ server <- function(input, output, session) {
   observeEvent(input$table_button,  {
     table <<- TRUE
     draw_ind_table(get_MP_ID(), input$factions_ind)  
+    outputOptions(x = output, name = 'ind_table', suspendWhenHidden = FALSE)
     show(id = "graph_button")
     show(id = "ind_table")
     hide(id = "table_button")
@@ -260,14 +264,18 @@ server <- function(input, output, session) {
   
   observeEvent(input$graph_button, {
     table <<- FALSE
+    hide(id = "ind_table")
+    show(id = "ind_graph")
+    outputOptions(x = output, name = 'ind_table', suspendWhenHidden = FALSE)
     output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     hide(id = "graph_button")
     show(id = "table_button")
-    hide(id = "ind_table")
-    show(id = "ind_graph")
+    
+    
   })
-   hide(id = "graph_button")
-   
+  hide(id = "graph_button")
+
+
   
 }
 #ui function
@@ -321,8 +329,8 @@ ui <- shinyUI(fluidPage(
         ),
       
         mainPanel(
-          fluidRow(forceNetworkOutput("ind_graph")),
-          fluidRow(DT::dataTableOutput('ind_table'))
+          fluidRow(forceNetworkOutput(outputId = "ind_graph")),
+          fluidRow(DT::dataTableOutput(outputId = 'ind_table'))
 	  
 	      )
       )
