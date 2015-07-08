@@ -1,10 +1,12 @@
 library(shiny)
 library(networkD3)
+library(shinyjs)
 load("data/all_nodes.Rda")
 load("data/factions.Rda")
 load("data/graph.Rda")
 load("data/partners.Rda")
 partners$name <- as.character(partners$name)
+
 f <- unique(as.character(factions$faction_title))
 
 #server function
@@ -71,9 +73,12 @@ server <- function(input, output, session) {
   
   observeEvent(input$chosen_MP, 
   {
-    output$ind_graph <- renderForceNetwork({
-      draw_ind_graph(get_MP_ID(), 1, input$factions_ind)
-    })
+    if (table == TRUE)
+    {
+      output$ind_table <- draw_ind_table(get_MP_ID(), input$factions_ind)  
+    } else {
+      output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
+    }
     d <- input$chosen_MP
     if (d %in% partners$name) 
     {
@@ -102,7 +107,31 @@ server <- function(input, output, session) {
     }
    }
   )
-   
+  
+  draw_ind_table <- function(d, f = unique(factions$faction_title))
+  {
+    MP_number <- which(partners$MP_ID == d)
+    p <- partners$partners[[MP_number]]
+    if (!is.null(p))
+    {
+      factions_all <- factions[factions$faction_title %in% f,1:2]
+      p$name <- as.character(p$name)
+      p <- p[p$faction_id %in% factions_all$faction_id, ]
+      p <- merge(p, factions_all, by = "faction_id")
+      p$faction_id <- NULL
+      p$MP_ID <- NULL
+      a <- p$times
+      p$times <- NULL
+      p$times <- a
+      names(p) <- c("Депутат", "Фракція", "К-ть спільних законопроектів")
+    }
+    dep_name <- all_nodes$name[all_nodes$MP_ID == d]
+    partners_amount <- length(p[, 1])
+    dratlaws <- all_nodes$size[all_nodes$name == dep_name]
+    DT::renderDataTable(p, options = list(language = list(url = "assets/Ukranian_partners.json")),
+                        caption = paste(dep_name, " всього подав ", draftlaws, " законопроектів та має", partners_amount, " законодавчих партнерів з обраних фракцій.", sep = ""), escape = F, rownames = NULL)
+  }
+  
   draw_ind_graph <- function(d, level, f = unique(factions$faction_title))
   {
     A <- graph[(graph$source == d)| (graph$target == d),]
@@ -156,6 +185,26 @@ server <- function(input, output, session) {
     
   }
   
+  individual_graph <- function(d, f)
+  {
+    if (table == FALSE)
+    {
+      renderForceNetwork({draw_ind_graph(d, 1, f)})
+    } else {
+      NULL
+    }
+  }
+  
+  individual_table <- function(d, f)
+  {
+    if (table == TRUE)
+    {
+      draw_ind_table(d, f)
+    } else {
+      NULL
+    }
+  }
+  
   get_MP_ID <- reactive({
     all_nodes$MP_ID[all_nodes$name == input$chosen_MP]
   })
@@ -181,16 +230,29 @@ server <- function(input, output, session) {
      updateCheckboxGroupInput(session, "factions_ind", selected = "")
   })
   
-  observeEvent(input$table_button, {
-    table <- !table
-    update	
+  observeEvent(input$table_button,  {
+    table <<- TRUE
+    show(id = "graph_button")
+    show(id = "ind_table")
+    hide(id = "table_button")
+    hide(id = "ind_graph")
   })
-   
+  
+  observeEvent(input$graph_button, {
+    table <<- FALSE
+    hide(id = "graph_button")
+    show(id = "table_button")
+    hide(id = "ind_table")
+    show(id = "ind_graph")
+  })
+  hide(id = "graph_button")
+  hide(id = "ind_table")
 }
 #ui function
 
 
 ui <- shinyUI(fluidPage(
+  useShinyjs(),
   tabsetPanel(
     tabPanel("Фракція-Фракція",
       sidebarLayout(
@@ -226,14 +288,19 @@ ui <- shinyUI(fluidPage(
                              label = "Оберіть фракції партнерів:",
                              choices = f, selected = f),
           fluidRow(
-	    column(width=4, actionButton("select_all_ind", "Обрати всі")) ,
+	          column(width=4, actionButton("select_all_ind", "Обрати всі")) ,
             column(width=4, actionButton("deselect_all_ind", "Скинути всі"))
           ),
-          actionButton("table_button", "У вигляді таблиці")
+          fluidRow(column(width = 5, offset = 1, actionButton("graph_button", "Назад до графу"))),
+          fluidRow(column(width = 5, offset = 1, actionButton("table_button", "У вигляді таблиці")))
+          
+ 
           
         ),
+      
         mainPanel(
-	        forceNetworkOutput("ind_graph", height="500px")
+	        forceNetworkOutput("ind_graph"),
+	        DT::dataTableOutput('ind_table')
 	  
 	      )
       )
