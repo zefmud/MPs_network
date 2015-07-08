@@ -259,7 +259,6 @@ server <- function(input, output, session) {
     } else {
       text("table_button", "У вигляді таблиці")
       outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = FALSE)
-      spike()
     }
     table <<- !table
     toggle("ind_table")
@@ -268,13 +267,8 @@ server <- function(input, output, session) {
 
   })
 
-   spike <- function()
-   {
-     output$ind_graph <- individual_graph(get_MP_ID(), "")
-   }
-   
-  hide(id = 'ind_table')
-  
+  #hide(id = 'ind_table')
+  hide(id = 'table_button')
 }
 #ui function
 
