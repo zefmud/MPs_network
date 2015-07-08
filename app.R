@@ -62,6 +62,7 @@ server <- function(input, output, session) {
     }
   }
   
+  
   update_table <- function()
   {
     d1 <- input$MP1_selectInput
@@ -200,12 +201,7 @@ server <- function(input, output, session) {
   
   individual_graph <- function(d, f)
   {
-    if (table == FALSE)
-    {
       renderForceNetwork(draw_ind_graph(d, 1, f))
-    } else {
-      NULL
-    }
   }
   
   individual_table <- function(d, f)
@@ -263,6 +259,7 @@ server <- function(input, output, session) {
     } else {
       text("table_button", "У вигляді таблиці")
       outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = FALSE)
+      spike()
     }
     table <<- !table
     toggle("ind_table")
@@ -270,7 +267,12 @@ server <- function(input, output, session) {
     update_ind_plots()
 
   })
-  
+
+   spike <- function()
+   {
+     output$ind_graph <- individual_graph(get_MP_ID(), "")
+   }
+   
   hide(id = 'ind_table')
   
 }
