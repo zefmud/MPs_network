@@ -81,7 +81,6 @@ server <- function(input, output, session) {
     } else {
       output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     }
-    print(outputOptions(output, name = NULL))
   }
   
   observeEvent(input$chosen_MP, 
