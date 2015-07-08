@@ -263,14 +263,12 @@ server <- function(input, output, session) {
   
   observeEvent(input$graph_button, {
     table <<- FALSE
-    outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = FALSE)
     hide(id = "ind_table")
     show(id = "ind_graph")
-    output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     hide(id = "graph_button")
     show(id = "table_button")
-    
-    
+    outputOptions(x = output, name = 'ind_graph', suspendWhenHidden = FALSE)
+    output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
   })
   hide(id = "graph_button")
 
