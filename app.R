@@ -71,14 +71,19 @@ server <- function(input, output, session) {
                                                  caption = paste(d1, " та ", d2, ": cпільні законопроекти", sep = ""), escape = F, rownames = NULL)
   }
   
-  observeEvent(input$chosen_MP, 
+  update_ind_plots <- function()
   {
     if (table == TRUE)
     {
-      output$ind_table <- draw_ind_table(get_MP_ID(), input$factions_ind)  
+      draw_ind_table(get_MP_ID(), input$factions_ind) 
     } else {
       output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     }
+  }
+  
+  observeEvent(input$chosen_MP, 
+  {
+    update_ind_plots()
     d <- input$chosen_MP
     if (d %in% partners$name) 
     {
@@ -123,13 +128,14 @@ server <- function(input, output, session) {
       a <- p$times
       p$times <- NULL
       p$times <- a
+      p <- p[order(-p$times),]
       names(p) <- c("Депутат", "Фракція", "К-ть спільних законопроектів")
     }
     dep_name <- all_nodes$name[all_nodes$MP_ID == d]
     partners_amount <- length(p[, 1])
-    dratlaws <- all_nodes$size[all_nodes$name == dep_name]
-    DT::renderDataTable(p, options = list(language = list(url = "assets/Ukranian_partners.json")),
-                        caption = paste(dep_name, " всього подав ", draftlaws, " законопроектів та має", partners_amount, " законодавчих партнерів з обраних фракцій.", sep = ""), escape = F, rownames = NULL)
+    draftlaws <- all_nodes$size[all_nodes$name == dep_name]
+    output$ind_table <- DT::renderDataTable(p, options = list(language = list(url = "assets/Ukranian_partners.json")),
+                        caption = paste(dep_name, " всього подав ", draftlaws, " законопроектів та має ", partners_amount, " законодавчих партнерів з обраних фракцій.", sep = ""), escape = F, rownames = NULL)
   }
   
   draw_ind_graph <- function(d, level, f = unique(factions$faction_title))
@@ -214,6 +220,10 @@ server <- function(input, output, session) {
     draw_graph(graph, input$min_value, input$factions)
   })
   
+  observeEvent(input$factions_ind,{
+    update_ind_plots()
+  })
+  
   observeEvent (input$select_all, {
      updateCheckboxGroupInput(session, "factions", selected = f)
   })
@@ -228,10 +238,17 @@ server <- function(input, output, session) {
   
   observeEvent (input$deselect_all_ind, {
      updateCheckboxGroupInput(session, "factions_ind", selected = "")
+     if (table == TRUE)
+     {
+       draw_ind_table(get_MP_ID(), "") 
+     } else {
+       output$ind_graph <- individual_graph(get_MP_ID(), "")
+     }
   })
   
   observeEvent(input$table_button,  {
     table <<- TRUE
+    draw_ind_table(get_MP_ID(), input$factions_ind)  
     show(id = "graph_button")
     show(id = "ind_table")
     hide(id = "table_button")
@@ -240,13 +257,15 @@ server <- function(input, output, session) {
   
   observeEvent(input$graph_button, {
     table <<- FALSE
+    output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     hide(id = "graph_button")
     show(id = "table_button")
     hide(id = "ind_table")
     show(id = "ind_graph")
   })
-  hide(id = "graph_button")
-  hide(id = "ind_table")
+   hide(id = "graph_button")
+   
+  
 }
 #ui function
 
@@ -281,7 +300,7 @@ ui <- shinyUI(fluidPage(
       sidebarLayout(
         sidebarPanel(width = 3, 
           h4("Співпраця депутата з депутатами різних фракцій"),
-          helpText("Чим більша відстань і менший кружечок депутатів - тим менше законопроектів він спільно ініціював з обраним нардепом. Наведіть 		мишкою на кружечок, і після імені депутата побачите точну кількість спільних законопроектів"),
+          helpText("Чим менша відстань і більший кружечок депутата - тим більше законопроектів він спільно ініціював з обраним нардепом. Наведіть 		мишкою на кружечок, і після імені депутата побачите точну кількість спільних законопроектів"),
           selectInput("chosen_MP", "Оберіть депутата:", 
                       choices = all_nodes$name[order(all_nodes$name)]),
           checkboxGroupInput("factions_ind", 
@@ -299,8 +318,8 @@ ui <- shinyUI(fluidPage(
         ),
       
         mainPanel(
-	        forceNetworkOutput("ind_graph"),
-	        DT::dataTableOutput('ind_table')
+          fluidRow(forceNetworkOutput("ind_graph")),
+          fluidRow(DT::dataTableOutput('ind_table'))
 	  
 	      )
       )
