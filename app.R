@@ -116,9 +116,9 @@ server <- function(input, output, session) {
   draw_ind_table <- function(d, f = unique(factions$faction_title))
   {
     MP_number <- which(partners$MP_ID == d)
-    p <- partners$partners[[MP_number]]
-    if (!is.null(p))
+    if  (length(MP_number) > 0) 
     {
+      p <- partners$partners[[MP_number]]
       factions_all <- factions[factions$faction_title %in% f,1:2]
       p$name <- as.character(p$name)
       p <- p[p$faction_id %in% factions_all$faction_id, ]
@@ -129,8 +129,11 @@ server <- function(input, output, session) {
       p$times <- NULL
       p$times <- a
       p <- p[order(-p$times),]
-      names(p) <- c("Депутат", "Фракція", "К-ть спільних законопроектів")
+      
+    } else {
+      p <- data.frame(matrix(NA,0,3))
     }
+    names(p) <- c("Депутат", "Фракція", "К-ть спільних законопроектів")
     dep_name <- all_nodes$name[all_nodes$MP_ID == d]
     partners_amount <- length(p[, 1])
     draftlaws <- all_nodes$size[all_nodes$name == dep_name]
