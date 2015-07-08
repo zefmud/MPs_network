@@ -236,7 +236,7 @@ ui <- shinyUI(fluidPage(
 	sidebarPanel(width = 3,
 	  h4("Спільні законопроекти депутатів"),
 	  helpText("Оберіть першого депутата, а потім - другого з числа його партнерів, аби побачити список спільно ініційованих двома депутатами 		законопроектів"),
-	  selectInput(inputId = "MP1_selectInput", label = "Виберіть першого депутата", choices = partners$name),
+	  selectInput(inputId = "MP1_selectInput", label = "Виберіть першого депутата", choices = partners$name[order(partners$name)]),
 	  selectInput(inputId = "MP2_selectInput", label = "Виберіть другого депутата", choices = NULL),
 	  uiOutput("help_second_list")
 	  
