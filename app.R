@@ -241,12 +241,12 @@ server <- function(input, output, session) {
   
   observeEvent (input$deselect_all_ind, {
      updateCheckboxGroupInput(session, "factions_ind", selected = "")
-     if (table == TRUE)
-     {
+#      if (table == TRUE)
+#      {
        draw_ind_table(get_MP_ID(), "") 
-     } else {
+#     } else {
        output$ind_graph <- individual_graph(get_MP_ID(), "")
-     }
+#     }
   })
   
   observeEvent(input$table_button,  {
