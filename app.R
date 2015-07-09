@@ -12,6 +12,7 @@ f <- unique(as.character(factions$faction_title))
 #server function
 server <- function(input, output, session) {
   table <- FALSE
+  table_hidden <- FALSE
   draw_graph <- function(graph, min_value, f = unique(factions$faction_title))
   {
     A <- graph[graph$value >= min_value, ]
@@ -266,7 +267,17 @@ server <- function(input, output, session) {
     update_ind_plots()
 
   })
-
+  
+  observeEvent(input$hide_button, {
+    if (table_hidden == FALSE)
+    {
+      text("hide_button", "показати таблицю >>")
+    } else {
+      text("hide_button", "<< приховати таблицю")
+    }
+    table_hidden <<- !table_hidden
+    toggle("ind_table")
+  })
   #hide(id = 'ind_table')
   hide(id = 'table_button')
 }
@@ -313,8 +324,8 @@ ui <- shinyUI(fluidPage(
 	          column(width=4, actionButton("select_all_ind", "Обрати всі")) ,
             column(width=4, actionButton("deselect_all_ind", "Скинути всі"))
           ),
-          fluidRow(column(width = 5, offset = 1, actionButton("table_button", "У вигляді таблиці")))
-          
+          fluidRow(column(width = 5, offset = 1, actionButton("table_button", "У вигляді таблиці"))),
+          fluidRow(column(width = 5, offset = 1, actionButton("hide_button", "<< приховати таблицю")))
  
           
         ),
