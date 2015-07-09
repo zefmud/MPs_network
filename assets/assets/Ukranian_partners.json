@@ -2,7 +2,7 @@
 
 {
 	"sProcessing":   "Зачекайте...",
-	"sLengthMenu":   "Показати _MENU_ партерів",
+	"sLengthMenu":   "Показати _MENU_ партнерів",
 	"sZeroRecords":  "Партнери відсутні.",
 	"sInfo":         "Партнери з _START_ по _END_ із _TOTAL_ партнерів",
 	"sInfoEmpty":    "Партнери з 0 по 0 із 0 парнерів",
