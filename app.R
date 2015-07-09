@@ -54,7 +54,7 @@ server <- function(input, output, session) {
     
       bills_list_number <- which(((graph$source == d1)|(graph$source == d2))&((graph$target == d1)|(graph$target == d2)))
       bills <- graph$bills[[bills_list_number]]
-      bills$bill_title <- paste("<a href = '", bills$bill_link,"'>",bills$bill_title,"</a>", sep="")
+      bills$bill_title <- paste("<a href = '", bills$bill_link,"' target='_blank' >",bills$bill_title,"</a>", sep="")
       bills$bill_link <- NULL
       bills$type <- NULL
       #bills$date <- format(bills$date, format = "%d.%m.%Y")
