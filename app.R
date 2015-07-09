@@ -144,7 +144,7 @@ server <- function(input, output, session) {
     partners_amount <- length(p[, 1])
     draftlaws <- all_nodes$size[all_nodes$name == dep_name]
     output$ind_table <- DT::renderDataTable(p, options = list(pageLength = 50, language = list(url = "assets/Ukranian_partners.json")),
-                        caption = paste(dep_name, " всього подав ", draftlaws, " законопроектів та має ", partners_amount, " законодавчих партнерів з обраних фракцій.", sep = ""), escape = F, rownames = NULL)
+                        caption = paste(dep_name, " всього подав(-ла) ", draftlaws, " законопроектів та має ", partners_amount, " законодавчих партнерів з обраних фракцій.", sep = ""), escape = F, rownames = NULL)
   }
   
   draw_ind_graph <- function(d, level, f = unique(factions$faction_title))
