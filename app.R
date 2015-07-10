@@ -290,11 +290,11 @@ ui <- shinyUI(fluidPage(
     tabPanel("Фракція-Фракція",
       sidebarLayout(
         sidebarPanel(width = 3, 
-          h4("Законототворчі групи"), 
+          h4("Законотворчі групи"), 
           helpText("Хто найтісніше співпрацює всередині кожної фракції та між ними?"),
           checkboxGroupInput("factions", 
                       label = "Оберіть фракції:",
-                      choices = f),
+                      choices = f, selected = f),
           fluidRow(
 	    column(width=4, actionButton("select_all", "Обрати всі")),
             column(width=4, actionButton("deselect_all", "Скинути всі"))
