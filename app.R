@@ -222,9 +222,10 @@ server <- function(input, output, session) {
     #forming an expression to calculate distance
     max_value <- max(A$value)
     dist_expr <- paste('function(d){return 25 +  (1 / d.value) * 150}')
+    groups <- unique(nodes$group)
     forceNetwork(Links = A, Nodes = nodes, Source = "source", Target = "target", 
                  Value = "value", NodeID = "name", Nodesize = "size", Group = "group",  
-                 colourScale = JS("d3.scale.category10()"), linkDistance = JS(dist_expr), 
+                 colourScale = JS(factions_colors(groups)), linkDistance = JS(dist_expr), 
                  opacity = 1, zoom = FALSE, legend = TRUE)
     
   }
