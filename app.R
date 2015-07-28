@@ -13,6 +13,34 @@ f <- unique(as.character(factions$faction_title))
 server <- function(input, output, session) {
   table <- FALSE
   table_hidden <- FALSE
+  
+  factions_colors <- function(f_vector)
+  {
+    quotes_wrap <- function(s)
+    {
+      paste0('"',s,'"')
+    }
+    switch_color <- function(f)
+    {
+       switch(as.character(f),
+              'Блок Петра Порошенка' = '"#FD0E0E"',
+              'Народний фронт' = '"#E3FC07"',
+              'Опозиційний блок' = '"#070FFC"',
+              'Позафракційні' = '"#5E5E5E"',
+              'Самопоміч'= '"#07FC0F"',
+              'Радикальна партія' = '"#4E0101"',
+              'Гр. "Воля народу"' = '"#FC07EB"',
+              'ВО "Батьківщина"' = '"#FC6907"',
+              'Гр. "Відродження"' = '"#07FCE3"'
+      )
+    }
+    ret <- sapply(f_vector, switch_color)
+    faction_part <- paste0("[",paste0(sapply(f_vector, quotes_wrap), collapse = ", "), "]")
+    #print(faction_part)
+    print(paste0("d3.scale.ordinal().range([", paste(ret, collapse = ", "), "])"))
+    paste0("d3.scale.ordinal().range([", paste(ret, collapse = ", "), "])")
+  }
+  
   draw_graph <- function(graph, min_value, f = unique(factions$faction_title))
   {
     A <- graph[graph$value >= min_value, ]
@@ -29,9 +57,10 @@ server <- function(input, output, session) {
       A$source[i] <- as.numeric(nodes$name[which(nodes$MP_ID == A$source[i])])-1
       A$target[i] <- as.numeric(nodes$name[which(nodes$MP_ID == A$target[i])])-1
     }
+    groups <- unique(nodes$group)
     forceNetwork(Links = A, Nodes = nodes, Source = "source", Target = "target", 
 		Value = "value", NodeID = "name", Nodesize = "size", Group = "group",  
-    colourScale = JS("d3.scale.category10()"),
+    colourScale = JS(factions_colors(groups)),
 		opacity = 0.9, zoom = FALSE, legend = TRUE)
   }
   
