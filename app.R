@@ -1,18 +1,62 @@
 library(shiny)
 library(networkD3)
 library(shinyjs)
-load("data/all_nodes.Rda")
+load("data/full_node_table.Rda")
+load("data/fr_node_table.Rda")
+load("data/laws_node_table.Rda")
 load("data/factions.Rda")
-load("data/graph.Rda")
-load("data/partners.Rda")
-partners$name <- as.character(partners$name)
+load("data/graph_all.Rda")
+load("data/graph_fr.Rda")
+load("data/graph_laws.Rda")
+load("data/partners_all.Rda")
+load("data/partners_fr.Rda")
+load("data/partners_laws.Rda")
 
+dl_types <- c("Усі законопроекти", "Ухвалені за основу", "Стали законами")
+
+partners_all$name <- as.character(partners_all$name)
 f <- unique(as.character(factions$faction_title))
+
 
 #server function
 server <- function(input, output, session) {
   table <- FALSE
   table_hidden <- FALSE
+
+  
+  graph_switch <- function(s)
+  {
+    switch(s,
+           "Усі законопроекти" = graph_all,
+           "Ухвалені за основу" = graph_fr,
+           "Стали законами" = graph_laws)
+  }
+  
+  partners_switch <- function(s)
+  {
+    switch(s,
+           "Усі законопроекти" = partners_all,
+           "Ухвалені за основу" = partners_fr,
+           "Стали законами" = partners_laws)
+  }
+  
+  nodes_switch <- function(s)
+  {
+    switch(s,
+           "Усі законопроекти" = full_node_table,
+           "Ухвалені за основу" = fr_node_table,
+           "Стали законами" = laws_node_table)
+  }
+  
+  graph <<- graph_switch(dl_types[1])
+  partners <<- partners_switch(dl_types[1])
+  all_nodes <<- nodes_switch(dl_types[1])
+  graph2 <<- graph_switch(dl_types[1])
+  partners2 <<- partners_switch(dl_types[1])
+  all_nodes2 <<- nodes_switch(dl_types[1])
+  graph3 <<- graph_switch(dl_types[1])
+  partners3 <<- partners_switch(dl_types[1])
+  all_nodes3 <<- nodes_switch(dl_types[1])
   
   factions_colors <- function(f_vector)
   {
@@ -37,7 +81,6 @@ server <- function(input, output, session) {
     ret <- sapply(f_vector, switch_color)
     faction_part <- paste0("[",paste0(sapply(f_vector, quotes_wrap), collapse = ", "), "]")
     #print(faction_part)
-    print(paste0("d3.scale.ordinal().range([", paste(ret, collapse = ", "), "])"))
     paste0("d3.scale.ordinal().range([", paste(ret, collapse = ", "), "])")
   }
   
@@ -66,30 +109,34 @@ server <- function(input, output, session) {
   
     
   update_second_droplist <-  function() {
-    selected <- which(partners$name == input$MP1_selectInput)
-    partners_names <- as.character(partners$partners[[selected]]$name)
+    selected <- which(partners3$name == input$MP1_selectInput)
+    partners_names <- as.character(partners3$partners[[selected]]$name)
     updateSelectInput(session, inputId = "MP2_selectInput", choices = partners_names, selected = partners_names[1])
   }
   
   get_bills_list <- function(d1, d2)
   {
-    d1 <- all_nodes$MP_ID[all_nodes$name == d1]
-    d2 <- all_nodes$MP_ID[all_nodes$name == d2]
-    if (sum(((graph$source == d1)|(graph$source == d2))&((graph$target == d1)|(graph$target == d2))) == 0)
+    d1 <- all_nodes3$MP_ID[all_nodes$name == d1]
+    d2 <- all_nodes3$MP_ID[all_nodes$name == d2]
+    if (sum(((graph3$source == d1)|(graph3$source == d2))&((graph3$target == d1)|(graph3$target == d2))) == 0)
     {
-      update_second_droplist()
-      NULL
+      #update_second_droplist()
+      bills <- data.frame()
+      bills$Номер <- character()
+      bills[,"Дата реєстрації"] <- character()
+      bills[,"Назва"] <- character()
+      bills[,"Став законом"] <- character()
     } else {
-    
-      bills_list_number <- which(((graph$source == d1)|(graph$source == d2))&((graph$target == d1)|(graph$target == d2)))
-      bills <- graph$bills[[bills_list_number]]
+
+      bills_list_number <- which(((graph3$source == d1)|(graph3$source == d2))&((graph3$target == d1)|(graph3$target == d2)))
+      bills <- graph3$bills[[bills_list_number]]
       bills$bill_title <- paste("<a href = '", bills$bill_link,"' target='_blank' >",bills$bill_title,"</a>", sep="")
       bills$bill_link <- NULL
       bills$type <- NULL
       #bills$date <- format(bills$date, format = "%d.%m.%Y")
-      names(bills) <- c ("Номер", "Дата реєстрації", "Назва", "Став чинним актом")
-      bills
+      names(bills) <- c ("Номер", "Дата реєстрації", "Назва", "Став законом")
     }
+    bills
   }
   
   
@@ -120,15 +167,15 @@ server <- function(input, output, session) {
   {
     update_ind_plots()
     d <- input$chosen_MP
-    if (d %in% partners$name) 
+    if (d %in% partners2$name) 
     {
-      updateSelectInput(session, inputId = "MP1_selectInput", choices = partners$name[order(partners$name)], selected = d)
+      updateSelectInput(session, inputId = "MP1_selectInput", choices = as.character(partners2$name)[order(partners2$name)], selected = d)
     }
   })
   observeEvent(input$MP1_selectInput, {
     update_second_droplist()
     d1 <- input$MP1_selectInput
-    number_all <- all_nodes$size[all_nodes$name == d1]
+    number_all <- all_nodes3$size[all_nodes$name == d1]
     output$table_header1 <- renderUI({h5(paste(d1, " всього подав(-ла) ", number_all, " законопроект(-и,-ів)."), sep="")})
     output$help_second_list <-renderUI({helpText(paste("Депутати в другому списку відсортовані за кількістю законопроектів, яку ", d1, " подав(-ла) у співпраці із ними.", sep = "")) })
     update_table()
@@ -137,12 +184,12 @@ server <- function(input, output, session) {
     update_table()
     d1 <- input$MP1_selectInput
     d2_string <- input$MP2_selectInput
-    d1 <- all_nodes$MP_ID[all_nodes$name == d1]
-    d2 <- all_nodes$MP_ID[all_nodes$name == d2_string]
-    if (sum(((graph$source == d1)|(graph$source == d2))&((graph$target == d1)|(graph$target == d2))) > 0)
+    d1 <- all_nodes3$MP_ID[all_nodes$name == d1]
+    d2 <- all_nodes3$MP_ID[all_nodes$name == d2_string]
+    if (sum(((graph3$source == d1)|(graph3$source == d2))&((graph3$target == d1)|(graph3$target == d2))) > 0)
     {
-      link_number <- which(((graph$source == d1)|(graph$source == d2))&((graph$target == d1)|(graph$target == d2)))
-      number_coop <- graph$value[link_number] 
+      link_number <- which(((graph3$source == d1)|(graph3$source == d2))&((graph3$target == d1)|(graph3$target == d2)))
+      number_coop <- graph3$value[link_number] 
       output$table_header2 <- renderUI({h5(paste("Разом з ",d2_string, " - ", number_coop, " законопроект(-и,-ів)."), sep="")})
     }
    }
@@ -150,10 +197,10 @@ server <- function(input, output, session) {
   
   draw_ind_table <- function(d, f = unique(factions$faction_title))
   {
-    MP_number <- which(partners$MP_ID == d)
+    MP_number <- which(partners2$MP_ID == d)
     if  (length(MP_number) > 0) 
     {
-      p <- partners$partners[[MP_number]]
+      p <- partners2$partners[[MP_number]]
       factions_all <- factions[factions$faction_title %in% f,1:2]
       p$name <- as.character(p$name)
       p <- p[p$faction_id %in% factions_all$faction_id, ]
@@ -169,16 +216,16 @@ server <- function(input, output, session) {
       p <- data.frame(matrix(NA,0,3))
     }
     names(p) <- c("Депутат", "Фракція", "К-ть спільних законопроектів")
-    dep_name <- all_nodes$name[all_nodes$MP_ID == d]
+    dep_name <- all_nodes2$name[all_nodes2$MP_ID == d]
     partners_amount <- length(p[, 1])
-    draftlaws <- all_nodes$size[all_nodes$name == dep_name]
+    draftlaws <- all_nodes2$size[all_nodes2$name == dep_name]
     output$ind_table <- DT::renderDataTable(p, options = list(pageLength = 50, language = list(url = "assets/Ukranian_partners.json")),
                         caption = paste(dep_name, " всього подав(-ла) ", draftlaws, " законопроектів та має ", partners_amount, " законодавчих партнерів з обраних фракцій.", sep = ""), escape = F, rownames = NULL)
   }
   
   draw_ind_graph <- function(d, level, f = unique(factions$faction_title))
   {
-    A <- graph[(graph$source == d)| (graph$target == d),]
+    A <- graph2[(graph2$source == d)| (graph2$target == d),]
     if (length(A$source) > 0)
     {
       for (i in 1:length(A$source))
@@ -191,9 +238,10 @@ server <- function(input, output, session) {
         }
       }
     }
+    
     active_nodes <- unique(c(A$target, A$source, d))
-    nodes <- all_nodes[((all_nodes$MP_ID %in% active_nodes) & (all_nodes$group %in% f)) 
-                       | all_nodes$MP_ID == d, ]
+    nodes <- all_nodes2[((all_nodes2$MP_ID %in% active_nodes) & (all_nodes2$group %in% f)) 
+                       | all_nodes2$MP_ID == d, ]
     A <- A[(A$source %in% nodes$MP_ID)& (A$target %in% nodes$MP_ID), ]
     #regulating the sizes of nodes
     
@@ -280,6 +328,73 @@ server <- function(input, output, session) {
 #     }
   })
   
+  observeEvent(input$draftlaws_type1, 
+  {
+    s <- input$draftlaws_type1
+    graph <<- graph_switch(s)
+    partners <<- partners_switch(s)
+    all_nodes <<- nodes_switch(s)
+    #updateSelectInput(session, inputId = "draftlaws_type2", choices = dl_types, selected = s)
+    #updateSelectInput(session, inputId = "draftlaws_type3", choices = dl_types, selected = s)
+    output$graph <- renderForceNetwork({
+      
+      draw_graph(graph, input$min_value, input$factions)
+    })
+ 
+  })
+
+  observeEvent(input$draftlaws_type2, 
+  {
+    s <- input$draftlaws_type2
+    graph2 <<- graph_switch(s)
+    partners2 <<- partners_switch(s)
+    all_nodes2 <<- nodes_switch(s)
+    #nodes <- all_nodes[all_nodes$MP_IP %in% []
+    #updateSelectInput(session, unputId = "MP1_selectInput", choices = partners2$name[order(partners2$name)])
+    draw_ind_table(get_MP_ID(), f = input$factions_ind) 
+    output$ind_graph <- individual_graph(get_MP_ID(), f = input$factions_ind)
+    d <- input$chosen_MP
+    if (d %in% partners2$name) 
+    {
+      updateSelectInput(session, inputId = "MP1_selectInput", choices = as.character(partners2$name)[order(partners2$name)], selected = d)
+    }
+    #updateSelectInput(session, inputId = "draftlaws_type1", choices = dl_types, selected = s)
+    #updateSelectInput(session, inputId = "draftlaws_type3", choices = dl_types, selected = s)
+  })
+
+  observeEvent(input$draftlaws_type3, 
+  {
+    s <- input$draftlaws_type3
+    prev1 <- input$MP1_selectInput
+    prev2 <- input$MP2_selectInput
+    prev_graph <- graph3
+    graph3 <<- graph_switch(s)
+    partners3 <<- partners_switch(s)
+    all_nodes3 <<- nodes_switch(s)
+    #prev_select1 <- input$
+    if (prev1 %in% partners3$name)
+    {
+      p_number <- which(prev1 == partners$name)
+      p_names <- partners3$partners[[p_number]]$name
+      updateSelectInput(session, inputId = "MP1_selectInput", choices = as.character(partners3$name)[order(partners3$name)], selected = prev1)
+      if (prev2 %in% p_names)
+      {
+        updateSelectInput(session, inputId = "MP2_selectInput", choices = as.character(p_names)[order(p_names)], selected = prev2)
+        
+      } else
+      {
+        updateSelectInput(session, inputId = "MP2_selectInput", choices = as.character(p_names)[order(p_names)], selected = p_names[1])
+      }
+    }
+    else 
+    {
+      updateSelectInput(session, inputId = "MP1_selectInput", choices = as.character(partners3$name)[order(partners3$name)], selected = partners3$name[1])
+    }
+    update_table()
+    #updateSelectInput(session, inputId = "draftlaws_type1", choices = dl_types, selected = s)
+    #updateSelectInput(session, inputId = "draftlaws_type2", choices = dl_types, selected = s)
+  })
+
   observeEvent(input$table_button,  {
     if (table == FALSE)
     {
@@ -310,6 +425,7 @@ server <- function(input, output, session) {
   })
   #hide(id = 'ind_table')
   hide(id = 'table_button')
+
 }
 #ui function
 
@@ -332,7 +448,8 @@ ui <- shinyUI(fluidPage(
           sliderInput("min_value", 
                       label = "Мінімальна кількість законопроектів, спільно ініційованих депутатами:",
                       min = 1, max = 30, value = 15),
-          
+	        selectInput("draftlaws_type1", "Проходження законопроектів:",
+	                      choices = dl_types),
           helpText("Розмір кружечка залежить від загальної кількості законопроектів, які ініціював депутат.
                    Товшина лінії зв’язку залежить від кількості законопроектів, 
                    які депутати ініціювали разом.")),
@@ -346,7 +463,7 @@ ui <- shinyUI(fluidPage(
           h4("Співпраця депутата з депутатами різних фракцій"),
           helpText("Чим менша відстань і більший кружечок депутата - тим більше законопроектів він спільно ініціював з обраним нардепом. Наведіть 		мишкою на кружечок, і після імені депутата побачите точну кількість спільних законопроектів"),
           selectInput("chosen_MP", "Оберіть депутата:", 
-                      choices = all_nodes$name[order(all_nodes$name)]),
+                      choices = full_node_table$name[order(full_node_table$name)]),
           checkboxGroupInput("factions_ind", 
                              label = "Оберіть фракції партнерів:",
                              choices = f, selected = f),
@@ -354,6 +471,8 @@ ui <- shinyUI(fluidPage(
 	          column(width=4, actionButton("select_all_ind", "Обрати всі")) ,
             column(width=4, actionButton("deselect_all_ind", "Скинути всі"))
           ),
+          selectInput("draftlaws_type2", "Проходження законопроектів:",
+                      choices = dl_types),
           fluidRow(column(width = 5, offset = 1, actionButton("table_button", "У вигляді таблиці"))),
           fluidRow(column(width = 5, offset = 1, actionButton("hide_button", "<< приховати таблицю")))
  
@@ -372,9 +491,11 @@ ui <- shinyUI(fluidPage(
 	sidebarPanel(width = 3,
 	  h4("Спільні законопроекти депутатів"),
 	  helpText("Оберіть першого депутата, а потім - другого з числа його партнерів, аби побачити список спільно ініційованих двома депутатами 		законопроектів"),
-	  selectInput(inputId = "MP1_selectInput", label = "Виберіть першого депутата", choices = partners$name[order(partners$name)]),
+	  selectInput(inputId = "MP1_selectInput", label = "Виберіть першого депутата", choices = partners_all$name[order(partners_all$name)]),
 	  selectInput(inputId = "MP2_selectInput", label = "Виберіть другого депутата", choices = NULL),
-	  uiOutput("help_second_list")
+	  uiOutput("help_second_list"),
+	  selectInput("draftlaws_type3", "Проходження законопроектів:",
+	              choices = dl_types)
 	  
 	),
 	mainPanel(
