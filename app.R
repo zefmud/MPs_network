@@ -449,7 +449,7 @@ ui <- shinyUI(fluidPage(
           ),
           sliderInput("min_value", 
                       label = "Мінімальна кількість законопроектів, спільно ініційованих депутатами:",
-                      min = 1, max = 30, value = 15),
+                      min = 1, max = 50, value = 25),
 	        selectInput("draftlaws_type1", "Проходження законопроектів:",
 	                      choices = dl_types),
           helpText("Розмір кружечка залежить від загальної кількості законопроектів, які ініціював депутат.
