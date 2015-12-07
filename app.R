@@ -374,9 +374,11 @@ server <- function(input, output, session) {
     #prev_select1 <- input$
     if (prev1 %in% partners3$name)
     {
-      p_number <- which(prev1 == partners$name)
+
+      p_number <- which(prev1 == partners3$name)
       p_names <- partners3$partners[[p_number]]$name
       updateSelectInput(session, inputId = "MP1_selectInput", choices = as.character(partners3$name)[order(partners3$name)], selected = prev1)
+      
       if (prev2 %in% p_names)
       {
         updateSelectInput(session, inputId = "MP2_selectInput", choices = as.character(p_names)[order(p_names)], selected = prev2)
