@@ -201,16 +201,14 @@ server <- function(input, output, session) {
     if  (length(MP_number) > 0) 
     {
       p <- partners2$partners[[MP_number]]
+      print(head(p))
       factions_all <- factions[factions$faction_title %in% f,1:2]
       p$name <- as.character(p$name)
       p <- p[p$faction_id %in% factions_all$faction_id, ]
-      p <- merge(p, factions_all, by = "faction_id")
-      p$faction_id <- NULL
-      p$MP_ID <- NULL
-      a <- p$times
-      p$times <- NULL
-      p$times <- a
-      p <- p[order(-p$times),]
+      #p <- merge(p, factions_all, by = "faction_id")
+      #p$faction_id <- NULL
+      #p$MP_ID <- NULL
+      p <- p[order(-p$times), c("name", "faction_title", "times")]
       
     } else {
       p <- data.frame(matrix(NA,0,3))
