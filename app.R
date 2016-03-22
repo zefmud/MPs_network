@@ -1,7 +1,6 @@
 library(shiny)
 library(networkD3)
 library(shinyjs)
-library(shinyBS)
 load("data/full_node_table.Rda")
 load("data/fr_node_table.Rda")
 load("data/laws_node_table.Rda")
