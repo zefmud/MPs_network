@@ -1,6 +1,7 @@
 library(shiny)
 library(networkD3)
 library(shinyjs)
+library(shinyBS)
 load("data/full_node_table.Rda")
 load("data/fr_node_table.Rda")
 load("data/laws_node_table.Rda")
@@ -22,6 +23,7 @@ f <- unique(as.character(factions$faction_title))
 server <- function(input, output, session) {
   table <- FALSE
   table_hidden <- FALSE
+  first_time <- TRUE
 
   
   graph_switch <- function(s)
@@ -80,7 +82,6 @@ server <- function(input, output, session) {
     }
     ret <- sapply(f_vector, switch_color)
     faction_part <- paste0("[",paste0(sapply(f_vector, quotes_wrap), collapse = ", "), "]")
-    #print(faction_part)
     paste0("d3.scale.ordinal().range([", paste(ret, collapse = ", "), "])")
   }
   
@@ -201,7 +202,6 @@ server <- function(input, output, session) {
     if  (length(MP_number) > 0) 
     {
       p <- partners2$partners[[MP_number]]
-      print(head(p))
       factions_all <- factions[factions$faction_title %in% f,1:2]
       p$name <- as.character(p$name)
       p <- p[p$faction_id %in% factions_all$faction_id, ]
@@ -380,14 +380,20 @@ server <- function(input, output, session) {
       if (prev2 %in% p_names)
       {
         updateSelectInput(session, inputId = "MP2_selectInput", choices = as.character(p_names)[order(p_names)], selected = prev2)
-        
       } else
       {
+        if (!first_time) {
+          session$sendCustomMessage(type = "showalert", paste0(prev1, " та ", prev2, " не мають спільних законопроектів із обраним статусом."))
+        } else {
+          first_time <<- FALSE
+        }
         updateSelectInput(session, inputId = "MP2_selectInput", choices = as.character(p_names)[order(p_names)], selected = p_names[1])
+        
       }
     }
     else 
     {
+      session$sendCustomMessage(type = "showalert", paste0(prev1, " ні з ким не має спільних законопроектів із обраним статусом."))
       updateSelectInput(session, inputId = "MP1_selectInput", choices = as.character(partners3$name)[order(partners3$name)], selected = partners3$name[1])
     }
     update_table()
@@ -432,6 +438,13 @@ server <- function(input, output, session) {
 
 ui <- shinyUI(fluidPage(
   useShinyjs(),
+  tags$script(type="text/javascript", "
+   $(document).ready(function() {
+        Shiny.addCustomMessageHandler('showalert', function(message) {
+          alert(message);
+        });
+   });
+  "),
   tabsetPanel(
     tabPanel("Фракція-Фракція",
       sidebarLayout(
