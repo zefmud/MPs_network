@@ -383,7 +383,7 @@ server <- function(input, output, session) {
       } else
       {
         if (!first_time) {
-          session$sendCustomMessage(type = "showalert", paste0(prev1, " та ", prev2, " не мають спільних законопроектів із обраним статусом."))
+          session$sendCustomMessage(type = "showalert", paste0(prev1, " та ", prev2, " не подавали спільних законопроектів із обраним статусом."))
         } else {
           first_time <<- FALSE
         }
@@ -393,7 +393,7 @@ server <- function(input, output, session) {
     }
     else 
     {
-      session$sendCustomMessage(type = "showalert", paste0(prev1, " ні з ким не має спільних законопроектів із обраним статусом."))
+      session$sendCustomMessage(type = "showalert", paste0(prev1, " ні з ким не подавав законопроектів із обраним статусом."))
       updateSelectInput(session, inputId = "MP1_selectInput", choices = as.character(partners3$name)[order(partners3$name)], selected = partners3$name[1])
     }
     update_table()
