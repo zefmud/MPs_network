@@ -49,6 +49,23 @@ server <- function(input, output, session) {
            "Стали законами" = laws_node_table)
   }
   
+  factions_switch <- function(s) {
+    sw <- function(ch) {
+      switch(ch,
+             'ВО "Батьківщина"' = 'ВО "Батьківщина"',
+             'Блок Петра Порошенка' = 'Блок Петра Порошенка',
+             'Народний фронт' = 'Народний фронт',
+             "Радикальна партія" = "Радикальна партія Ляшка",
+             "Самопоміч" = 'Об\'єднання "Самопоміч"',
+             "Опозиційний блок" = "Опозиційний блок",
+             "Позафракційні" = "Не входить до складу жодної фракції",
+             "Гр. \"Воля народу\"" = "Група \"Воля народу\"",
+             "Гр. \"Відродження\"" = "Група \"Відродження\""  
+      )
+    }
+    sapply(s, sw)
+  }
+  
   graph <<- graph_switch(dl_types[1])
   partners <<- partners_switch(dl_types[1])
   all_nodes <<- nodes_switch(dl_types[1])
@@ -59,6 +76,32 @@ server <- function(input, output, session) {
   partners3 <<- partners_switch(dl_types[1])
   all_nodes3 <<- nodes_switch(dl_types[1])
   
+  # factions_colors <- function(f_vector)
+  # {
+  #   quotes_wrap <- function(s)
+  #   {
+  #     paste0('"',s,'"')
+  #   }
+  #   switch_color <- function(f)
+  #   {
+  #      switch(as.character(f),
+  #             'Блок Петра Порошенка' = '"#FD0E0E"',
+  #             'Народний фронт' = '"#DDFF00"',
+  #             'Опозиційний блок' = '"#070FFC"',
+  #             'Позафракційні' = '"#5E5E5E"',
+  #             'Самопоміч'= '"#00B906"',
+  #             'Радикальна партія' = '"#4E0101"',
+  #             'Гр. "Воля народу"' = '"#BC00AF"',
+  #             'ВО "Батьківщина"' = '"#FF9500"',
+  #             'Гр. "Відродження"' = '"#07FCE3"'
+  #     )
+  #   }
+  #   ret <- sapply(f_vector, switch_color)
+  #   faction_part <- paste0("[",paste0(sapply(f_vector, quotes_wrap), collapse = ", "), "]")
+  #   paste0("d3.scale.ordinal().range([", paste(ret, collapse = ", "), "])")
+  # }
+  # 
+  
   factions_colors <- function(f_vector)
   {
     quotes_wrap <- function(s)
@@ -67,16 +110,16 @@ server <- function(input, output, session) {
     }
     switch_color <- function(f)
     {
-       switch(as.character(f),
-              'Блок Петра Порошенка' = '"#FD0E0E"',
-              'Народний фронт' = '"#DDFF00"',
-              'Опозиційний блок' = '"#070FFC"',
-              'Позафракційні' = '"#5E5E5E"',
-              'Самопоміч'= '"#00B906"',
-              'Радикальна партія' = '"#4E0101"',
-              'Гр. "Воля народу"' = '"#BC00AF"',
-              'ВО "Батьківщина"' = '"#FF9500"',
-              'Гр. "Відродження"' = '"#07FCE3"'
+      switch(as.character(f),
+             'Блок Петра Порошенка' = '"#FD0E0E"',
+             'Народний фронт' = '"#DDFF00"',
+             'Опозиційний блок' = '"#070FFC"',
+             'Не входить до складу жодної фракції' = '"#5E5E5E"',
+             'Об\'єднання "Самопоміч"'= '"#00B906"',
+             'Радикальна партія Ляшка' = '"#4E0101"',
+             'Група "Воля народу"' = '"#BC00AF"',
+             'ВО "Батьківщина"' = '"#FF9500"',
+             'Група "Відродження"' = '"#07FCE3"'
       )
     }
     ret <- sapply(f_vector, switch_color)
@@ -84,8 +127,10 @@ server <- function(input, output, session) {
     paste0("d3.scale.ordinal().range([", paste(ret, collapse = ", "), "])")
   }
   
+  
   draw_graph <- function(graph, min_value, f = unique(factions$faction_title))
   {
+    print(unique(all_nodes$group))
     A <- graph[graph$value >= min_value, ]
     active_nodes <- unique(c(A$source, A$target))
     nodes <- all_nodes[(all_nodes$MP_ID %in% active_nodes) & (all_nodes$group %in% f), ]
@@ -151,15 +196,15 @@ server <- function(input, output, session) {
   
   update_ind_plots <- function()
   {
-     draw_ind_table(get_MP_ID(), input$factions_ind) 
+     draw_ind_table(get_MP_ID(), factions_switch(input$factions_ind))
      outputOptions(x = output, name = 'ind_table', suspendWhenHidden = FALSE)
 #     output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
     if (table == TRUE)
     {
-     draw_ind_table(get_MP_ID(), input$factions_ind) 
+     draw_ind_table(get_MP_ID(), factions_switch(input$factions_ind))
      
     } else {
-     output$ind_graph <- individual_graph(get_MP_ID(), input$factions_ind)
+     output$ind_graph <- individual_graph(get_MP_ID(), factions_switch(input$factions_ind))
     }
   }
   
@@ -296,7 +341,7 @@ server <- function(input, output, session) {
   
   output$graph <- renderForceNetwork({
 
-    draw_graph(graph, input$min_value, input$factions)
+    draw_graph(graph, input$min_value, factions_switch(input$factions))
   })
   
   observeEvent(input$factions_ind,{
@@ -335,7 +380,7 @@ server <- function(input, output, session) {
     #updateSelectInput(session, inputId = "draftlaws_type3", choices = dl_types, selected = s)
     output$graph <- renderForceNetwork({
       
-      draw_graph(graph, input$min_value, input$factions)
+      draw_graph(graph, input$min_value, factions_switch(input$factions))
     })
  
   })
@@ -348,8 +393,8 @@ server <- function(input, output, session) {
     all_nodes2 <<- nodes_switch(s)
     #nodes <- all_nodes[all_nodes$MP_IP %in% []
     #updateSelectInput(session, unputId = "MP1_selectInput", choices = partners2$name[order(partners2$name)])
-    draw_ind_table(get_MP_ID(), f = input$factions_ind) 
-    output$ind_graph <- individual_graph(get_MP_ID(), f = input$factions_ind)
+    draw_ind_table(get_MP_ID(), f = factions_switch(input$factions_ind)) 
+    output$ind_graph <- individual_graph(get_MP_ID(), f = factions_switch(input$factions_ind))
     d <- input$chosen_MP
     if (d %in% partners2$name) 
     {
