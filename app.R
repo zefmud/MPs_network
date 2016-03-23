@@ -130,7 +130,6 @@ server <- function(input, output, session) {
   
   draw_graph <- function(graph, min_value, f = unique(factions$faction_title))
   {
-    print(unique(all_nodes$group))
     A <- graph[graph$value >= min_value, ]
     active_nodes <- unique(c(A$source, A$target))
     nodes <- all_nodes[(all_nodes$MP_ID %in% active_nodes) & (all_nodes$group %in% f), ]
