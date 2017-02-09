@@ -145,6 +145,7 @@ server <- function(input, output, session) {
       A$target[i] <- as.numeric(nodes$name[which(nodes$MP_ID == A$target[i])])-1
     }
     groups <- unique(nodes$group)
+    #print(A$source)
     forceNetwork(Links = A, Nodes = nodes, Source = "source", Target = "target", 
 		Value = "value", NodeID = "name", Nodesize = "size", Group = "group",  
     colourScale = JS(factions_colors(groups)),
